@@ -1,13 +1,13 @@
 import { Mastra } from "@mastra/core/mastra";
 import { LibSQLStore } from "@mastra/libsql";
 import { PinoLogger } from "@mastra/loggers";
+import { loomaAgent } from "./agents/looma-agent";
+import { pineconeVector } from "./vectors/pinecone-vector";
 import { orderAgent } from "./agents/order-agent";
 import { productAgent } from "./agents/product-agent";
-import { loomaNetwork } from "./networks/looma-network";
-import { pinecone } from "./vectors/pinecone-vector";
 
 export const mastra = new Mastra({
-  agents: { productAgent, orderAgent },
+  agents: { loomaAgent, orderAgent, productAgent },
   storage: new LibSQLStore({
     url: ":memory:",
   }),
@@ -15,8 +15,7 @@ export const mastra = new Mastra({
     name: "Mastra",
     level: "info",
   }),
-  networks: { loomaNetwork },
   vectors: {
-    pinecone,
+    pinecone: pineconeVector,
   },
 });

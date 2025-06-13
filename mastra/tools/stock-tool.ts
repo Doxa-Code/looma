@@ -1,5 +1,5 @@
 import { createVectorQueryTool } from "@mastra/rag";
-import { azureEmbeddings } from "../../lib/llms";
+import { azureEmbeddings } from "../llms/azure";
 
 export const stockTool = createVectorQueryTool({
   id: "stock-tool",
