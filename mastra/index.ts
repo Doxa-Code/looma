@@ -15,6 +15,9 @@ export const mastra = new Mastra({
     name: "Mastra",
     level: "info",
   }),
+  telemetry: {
+    enabled: true,
+  },
   vectors: {
     pinecone: pineconeVector,
   },

@@ -1,8 +1,15 @@
 "use server";
-import axios from "axios";
-import { mastra } from "../../mastra";
+import { EvolutionApiSdk } from "@/lib/utils/evolution-api-sdk";
 import { z } from "zod";
 import { createServerAction } from "zsa";
+import { mastra } from "../../mastra";
+
+const evolutionApiSdk = EvolutionApiSdk.create({
+  apiKey: process.env.EVOLUTION_API_KEY ?? "",
+  url: process.env.EVOLUTION_API_URL ?? "",
+  instanceName: "Looma AI",
+});
+
 export const talkToLoomaAction = createServerAction()
   .input(
     z.object({
@@ -13,9 +20,8 @@ export const talkToLoomaAction = createServerAction()
     })
   )
   .handler(async ({ input }) => {
-    const response = await mastra
-      .getAgent("loomaAgent")
-      .generate(input.content, {
+    const [response] = await Promise.all([
+      mastra.getAgent("loomaAgent").generate(input.content, {
         resourceId: input.clientName,
         threadId: input.conversationId.toString(),
         system: `
@@ -23,18 +29,16 @@ export const talkToLoomaAction = createServerAction()
           Numero do cliente: ${input.clientPhone}
           ID da conversa: ${input.conversationId}
         `,
-      });
-    await axios.post(
-      `https://chatwoot.doxacode.com.br/api/v1/accounts/3/conversations/${input.conversationId}/messages`,
-      {
-        content: response.text,
-        message_type: "outgoing",
-        delay: 3000,
-      },
-      {
-        headers: {
-          api_access_token: process.env.CHATWOOT_API_KEY,
-        },
-      }
-    );
+        temperature: 0,
+      }),
+      evolutionApiSdk.composing(input.clientPhone, 10000),
+    ]);
+
+    console.log(response.steps);
+
+    await evolutionApiSdk.sendText({
+      number: input.clientPhone,
+      text: response.text,
+      delay: 0,
+    });
   });

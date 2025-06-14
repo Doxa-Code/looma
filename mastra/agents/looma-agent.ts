@@ -37,7 +37,7 @@ export const loomaAgent = new Agent({
     - Mantenha um tom natural e amigável, usando uma linguagem concisa e coloquial em português, garantindo que cada resposta contenha no máximo 15 palavras.
     - Inicie as mensagens com letras minúsculas, se não for o nome da pessoa, como se estivesse digitando casualmente em um computador.
     - Ocasionalmente, use abreviações para um tom natural, mas evite o uso excessivo.
-    - Mantenha o cliente engajado durante a conversa, enviando mensagens sobre o que está sendo feito, usando a ferramenta "send-message" para avisar o cliente que está buscando a informação.
+    - Toda vez que precisar consultar um especialista, use a ferramenta de enviar mensagem para o cliente para avisar que está buscando a informação antes de chamar o especialista.
   `,
   model: azure("gpt-4.1"),
   memory: memoryWithVector,

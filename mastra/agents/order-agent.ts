@@ -1,8 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import { azure } from "../llms/azure";
-import { memoryWithVector } from "../memories";
+import { azure, azureEmbeddings } from "../llms/azure";
 import { consultingCepTool } from "../tools/consulting-cep-tool";
 import {
   createOrderTool,
@@ -10,6 +9,38 @@ import {
   updateOrderTool,
 } from "../tools/order-tools";
 import { productAgentTool } from "./product-agent";
+import { Memory } from "@mastra/memory";
+import { pineconeVector } from "../vectors/pinecone-vector";
+import { LibSQLStore } from "@mastra/libsql";
+
+const memoryWithVectorAndNote = new Memory({
+  embedder: azureEmbeddings.textEmbeddingModel("text-embedding-3-small"),
+  vector: pineconeVector,
+  storage: new LibSQLStore({
+    url: "file:./local.db",
+  }),
+  options: {
+    semanticRecall: {
+      topK: 5,
+      scope: "resource",
+      messageRange: 3,
+    },
+    workingMemory: {
+      enabled: true,
+      template: `
+      - Nome do cliente:
+      - Endereço do cliente (Peça inicialmente o CEP, se a ferramenta de consulta de CEP não retornar o endereço, peça os dados faltantes - Rua, número, complemento, bairro, cidade, estado, CEP):
+      - Forma de pagamento desejada (pix, dinheiro, cartão):
+      - Produtos:
+      -- Nome do produto:
+      -- Preço unitário do produto (Promocional ou não):
+      -- Quantidade:
+      -- Preço total do produto:
+      - Preço total do pedido:
+      `,
+    },
+  },
+});
 
 export const orderAgent = new Agent({
   name: "Order Agent",
@@ -23,24 +54,12 @@ export const orderAgent = new Agent({
       - O endereço estar completo para acertividade na entrega, Rua, número, complemento, bairro, cidade, estado, CEP.
       - O total do pedido deve estar claro ao cliente.
 
-      Campos do pedido para preencher:
-      
-      - Nome do cliente
-      - Endereço do cliente (Peça inicialmente o CEP, se a ferramenta de consulta de CEP não retornar o endereço, peça os dados faltantes - Rua, número, complemento, bairro, cidade, estado, CEP)
-      - Forma de pagamento desejada (pix, dinheiro, cartão)
-      - Produtos
-      -- Nome do produto
-      -- Preço unitário do produto (Promocional ou não)
-      -- Quantidade
-      -- Preço total do produto
-      - Preço total do pedido
-
       Só registre o pedido quando o pedido estiver totalmente preenchido e revisado pelo atendente.
 
       Caso falte alguma informação, peça ao atendente pedir essa informação ao cliente.
   `,
   model: azure("gpt-4.1"),
-  memory: memoryWithVector,
+  memory: memoryWithVectorAndNote,
   tools: {
     createOrderTool,
     consultingCepTool,

@@ -6,12 +6,10 @@ export const stockTool = createVectorQueryTool({
   description: "use para verificar se o produto está em estoque",
   vectorStoreName: "pinecone",
   indexName: "products",
-  model: azureEmbeddings.textEmbeddingModel("text-embedding-3-small", {
-    dimensions: 1536,
-  }),
+  model: azureEmbeddings.textEmbeddingModel("text-embedding-3-small"),
   databaseConfig: {
     pinecone: {
-      namespace: "alexandre",
+      namespace: process.env.STOCK_NAMESPACE,
     },
   },
 });
