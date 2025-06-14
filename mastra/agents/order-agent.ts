@@ -1,24 +1,22 @@
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
+import { Memory } from "@mastra/memory";
 import { z } from "zod";
 import { azure, azureEmbeddings } from "../llms/azure";
+import { postgresStore } from "../store/postgres-store";
 import { consultingCepTool } from "../tools/consulting-cep-tool";
 import {
   createOrderTool,
   deleteOrderTool,
   updateOrderTool,
 } from "../tools/order-tools";
-import { productAgentTool } from "./product-agent";
-import { Memory } from "@mastra/memory";
 import { pineconeVector } from "../vectors/pinecone-vector";
-import { LibSQLStore } from "@mastra/libsql";
+import { productAgentTool } from "./product-agent";
 
 const memoryWithVectorAndNote = new Memory({
   embedder: azureEmbeddings.textEmbeddingModel("text-embedding-3-small"),
   vector: pineconeVector,
-  storage: new LibSQLStore({
-    url: "file:./local.db",
-  }),
+  storage: postgresStore,
   options: {
     semanticRecall: {
       topK: 5,
