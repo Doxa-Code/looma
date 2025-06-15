@@ -8,10 +8,8 @@ export const memoryWithVector = new Memory({
   vector: pineconeVector,
   storage: postgresStore,
   options: {
-    semanticRecall: {
-      topK: 5,
-      scope: "resource",
-      messageRange: 3,
+    workingMemory: {
+      enabled: true,
     },
   },
 });

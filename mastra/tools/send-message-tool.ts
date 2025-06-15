@@ -1,27 +1,32 @@
 import { createTool } from "@mastra/core";
-import axios from "axios";
 import { z } from "zod";
+import { EvolutionApiSdk } from "../evolution-api-sdk";
+
+const evolutionApiSdk = EvolutionApiSdk.create({
+  apiKey: process.env.EVOLUTION_API_KEY ?? "",
+  url: process.env.EVOLUTION_API_URL ?? "",
+  instanceName: "Looma AI",
+});
 
 export const sendMessageTool = createTool({
   id: "send-message",
-  description: "use para enviar uma mensagem para o cliente",
+  description: "use para enviar manter o cliente atualizado sobre suas ações",
   inputSchema: z.object({
-    conversationId: z.number(),
+    clientPhone: z.string(),
     message: z.string(),
   }),
   async execute({ context }) {
-    await axios.post(
-      `https://chatwoot.doxacode.com.br/api/v1/accounts/3/conversations/${context.conversationId}/messages`,
-      {
-        content: context.message,
-        message_type: "outgoing",
-        delay: 3000,
-      },
-      {
-        headers: {
-          api_access_token: process.env.CHATWOOT_API_KEY,
-        },
-      }
-    );
+    if (context.clientPhone.startsWith("+55")) {
+      await evolutionApiSdk
+        .sendText({
+          number: context.clientPhone,
+          text: context.message,
+          delay: 3000,
+        })
+        .catch(() => {});
+    } else {
+      console.log(context.message);
+    }
+    return "Mensagem enviada com sucesso";
   },
 });

@@ -20,8 +20,9 @@ export const talkToLoomaAction = createServerAction()
     })
   )
   .handler(async ({ input }) => {
-    const [response] = await Promise.all([
-      mastra.getAgent("loomaAgent").generate(input.content, {
+    const response = await mastra
+      .getAgent("loomaAgent")
+      .generate(input.content, {
         resourceId: input.clientName,
         threadId: input.conversationId.toString(),
         system: `
@@ -30,11 +31,7 @@ export const talkToLoomaAction = createServerAction()
           ID da conversa: ${input.conversationId}
         `,
         temperature: 0,
-      }),
-      evolutionApiSdk.composing(input.clientPhone, 10000),
-    ]);
-
-    console.log(response.steps);
+      });
 
     await evolutionApiSdk.sendText({
       number: input.clientPhone,
