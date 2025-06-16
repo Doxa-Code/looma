@@ -1,8 +1,13 @@
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
+import {
+  ContentSimilarityMetric,
+  ToneConsistencyMetric,
+} from "@mastra/evals/nlp";
 import { Memory } from "@mastra/memory";
 import { z } from "zod";
 import { azure, azureEmbeddings } from "../llms/azure";
+import instructions from "../prompts/order-prompt";
 import { postgresStore } from "../store/postgres-store";
 import { consultingCepTool } from "../tools/consulting-cep-tool";
 import {
@@ -12,7 +17,7 @@ import {
 } from "../tools/order-tools";
 import { stockTool } from "../tools/stock-tool";
 import { pineconeVector } from "../vectors/pinecone-vector";
-import instructions from "../prompts/order-prompt";
+import { AnswerRelevancyMetric } from "@mastra/evals/llm";
 
 const memoryWithVectorAndNote = new Memory({
   embedder: azureEmbeddings.textEmbeddingModel("text-embedding-3-small"),
@@ -52,6 +57,9 @@ export const orderAgent = new Agent({
     updateOrderTool,
     deleteOrderTool,
     stockTool,
+  },
+  evals: {
+    answerRelevancy: new AnswerRelevancyMetric(azure("gpt-4.1")),
   },
 });
 
